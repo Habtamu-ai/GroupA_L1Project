@@ -1,0 +1,68 @@
+#%RAML 1.0
+title: customer-phone-api
+
+/phone:
+  get:
+    description: Enter your phoneNumber.
+    queryParameters:      
+      phoneNumer: string  
+
+    headers:
+      Auth:
+        description: user have to send a valid token
+        required: true
+      username:
+      
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+
+              
+   
+    responses:
+      200:
+        body:
+          application/json:
+            example:      
+
+              {
+                  "carrier": "AT&T Mobility LLC",
+                  "country_code": "US",
+                  "country_name": "United States of America",
+                  "country_prefix": "+1",
+                  "international_format": "+14158586273",
+                  "line_type": "mobile",
+                  "local_format": "4158586273",
+                  "location": "Novato",
+                  "number": "14158586273",
+                  "valid": true
+            }
+      404:
+        body:
+            application/json:
+                example:
+                    {
+                      "Message": "User requested a resource which does not exist."
+                    }  
+
+
+      101:
+        body:
+            application/json:
+                example:
+                    {
+                    "Message": "User did not supply an Access Key."
+                    }
+                
+      210:
+        body:
+            application/json:
+                example:
+                    {
+                    "Message": "User did not provide a phone number."
+                    }  
+
+
+
