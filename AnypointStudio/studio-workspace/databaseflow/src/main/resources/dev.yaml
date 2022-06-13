@@ -1,0 +1,26 @@
+http:
+    host:"localhost"
+    path:"/dev"
+    port:"8083"
+    
+    
+    
+    
+db:
+    host: "db.icraftsoft.net"   
+    port: "3306"  
+    user: "mulesoftuser"
+    pwd:  "Cr@fTMule$oFt"  
+    name: "mulesoftdb"
+    
+  
+       
+
+db1:
+    host: "localhost"
+    port: "3306"  
+    user: "root"   
+    pwd:  "H2m@446152"
+    name: "mydb"
+  
+   

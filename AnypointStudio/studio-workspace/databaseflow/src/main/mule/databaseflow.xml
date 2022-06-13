@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="229bba08-b9fb-454c-af71-ec87ea4b1a03" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.pwd}" database="${db.name}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="f0b1acfc-ef7d-4a5b-b303-a5ced073d7db" file="dev.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="de6f67b1-3d6e-4cc8-ba69-85301bad2fa3" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="54dabf9e-2986-48b8-9b0b-0a811beb0141" >
+		<db:my-sql-connection host="${db1.host}" port="${db1.port}" user="${db1.user}" password="${db1.pwd}" database="${db1.name}" />
+	</db:config>
+	<flow name="databaseflowFlow" doc:id="15883d66-c3ff-44f0-8568-2ea5bb69d434" >
+		<http:listener doc:name="Listener" doc:id="460b6b36-bcbe-4e2b-aac9-0088dd835dc4" config-ref="HTTP_Listener_config" path="/dev"/>
+		<db:select doc:name="Select" doc:id="f024fb75-e2b5-4a13-a3d4-13e7b78c3a7d" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM mulesoftdb.tb_product;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="22f9478d-56b7-459a-8791-fa677b03f68e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.price >5000)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="databaseflowBatch_Job" doc:id="121cfffc-83c9-4dc8-935b-b2aece3da82b" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="e5da50ea-685e-44be-b560-6e81dd992595" >
+					<db:bulk-insert doc:name="Bulk insert" doc:id="86d1a64d-dcfb-4cb1-bec3-d46fa0821746" config-ref="Database_Config1">
+						<db:bulk-input-parameters><![CDATA[#[[{
+    var_id:payload.id, 
+    var_product_name:payload.product_name, 
+    var_description:payload.description,
+    var_video_url:payload.video_url,
+    var_category_id:payload.category_id,
+    var_price:payload.price}]]]]></db:bulk-input-parameters>
+						<db:sql><![CDATA[INSERT INTO tb_product (id, product_name, description, video_url, category_id, price)
+VALUES (:var_id, :var_product_name, :var_description,:var_video_url,:var_category_id,:var_price);
+]]></db:sql>
+					</db:bulk-insert>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+		<set-payload value="Done" doc:name="Set Payload" doc:id="0ffb7109-385c-48a9-8edc-f3610576979b" />
+	</flow>
+</mule>
